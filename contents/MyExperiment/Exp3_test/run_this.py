@@ -10,14 +10,14 @@ import time
 from pandas.testing import assert_frame_equal
 
 def state_init():
-    init_state = pd.DataFrame(np.zeros(12*4).reshape(12, 4), columns=[0, 1, 2, 3, 4, 5, 6, 7])
+    init_state = pd.DataFrame(np.zeros(12*4).reshape(12, 4), columns=[0, 1, 2, 3])
     for i in range(len(init_state)):
-        j = random.randint(0, 7)
+        j = random.randint(0, 3)
         init_state.iloc[i][j] = 1
     return init_state
 
 def server_attribute():
-    init_state = pd.DataFrame(np.zeros(8*24).reshape(8, 24), columns=np.arange(24))
+    init_state = pd.DataFrame(np.zeros(4*12).reshape(4, 12), columns=np.arange(12))
     server = []
     attribute_list = range(len(init_state.columns))
     for i in range(len(init_state)):
@@ -45,17 +45,14 @@ def update():
         while True:
             # RL choose action based on observation
             # The action here is a number(the index of the real action)
-            action = RL.choose_action(str(state))
-            # print(action)
+            action = RL.choose_action(str(state_arr_for_one))
 
             # RL take action and get next observation and reward
             state_, costs_, reward_, cost_all, is_better = env.step(action, state, costs)
 
-            state_arr = env.state_array(state_)
-            different = [y for y in (state_arr_for_one + state_arr) if y not in state_arr_for_one]
-            print("diffrent:", different)
-            state_arr_for_one = state_arr
-            different_init = [y for y in (state_init_arr + state_arr) if y not in state_init_arr]
+            state__arr = env.state_array(state_)
+            different = [y for y in (state_arr_for_one + state__arr) if y not in state_arr_for_one]
+            print("different:", different)
 
             if ((reward_ < init_reward and reward_ < min(reward_list) or
                 (len(different) == 0 and reward_ >= reward and reward_ > (init_reward)))):
@@ -74,11 +71,17 @@ def update():
             if reward_ < init_reward:
                 reward_ = -1
 
+            if reward_ == init_reward:
+                reward_ = 0
+
             reward = reward_
 
             reward_list.append(reward)
 
-            RL.learn(str(state), action, reward, str(state_), done)
+            RL.learn(str(state_arr_for_one), action, reward, str(state__arr), done)
+
+            state_arr_for_one = state__arr
+            different_init = [y for y in (state_init_arr + state__arr) if y not in state_init_arr]
 
             costs = costs_
 
@@ -86,7 +89,6 @@ def update():
             state = state_
 
             sum += 1
-            # print(sum)
 
             if done:
                 break
@@ -116,7 +118,7 @@ def update():
     # end of game
     # print("final state:\n",state)
     print("------------------------")
-    print("The final state_array:", state_arr)
+    print("The final state_array:", state__arr)
     print("The final cost:", cost_all)
     # if state.equals(env.state_init):
     #     print("True")
@@ -132,20 +134,16 @@ if __name__ == "__main__":
     state_init = state_init()
     # for i in range(50):
     # print("第%d次测试：" % (i+1))
-    episodes = np.arange(20000)
+    episodes = np.arange(100)
     curr_time1 = datetime.datetime.now()
 
     # print(len(state_init))
-    server_attribute = pd.DataFrame(np.array([0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
-                                              0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0,
-                                              0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 1, 0, 0, 0, 0,
-                                              1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0,
-                                              0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1,
-                                              0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0, 1, 0, 0, 0,
-                                              0, 0, 0, 0, 1, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 1, 0,
-                                              0, 0, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0]).
-                                    reshape(8, 24),
-                                    columns=np.arange(24))
+    server_attribute = pd.DataFrame(np.array([0, 0, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0,
+                                              0, 1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0,
+                                              1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0,
+                                              0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 1, 1]).
+                                    reshape(4, 12),
+                                    columns=np.arange(12))
 
     env = Cluster(state_init, server_attribute)
     init_reward = env.reward(env.cost_all(env.cost_init), env.state_init)

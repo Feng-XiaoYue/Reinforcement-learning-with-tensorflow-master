@@ -41,10 +41,15 @@ class QLearningTable:
         self.check_state_exist(s_)
         q_predict = self.q_table.loc[s, a]
         if done:
-            q_target = r              # next state is not terminal
+            q_target = r           # next state is terminal
         else:
-            q_target = r + self.gamma * self.q_table.loc[s_, :].max()  # next state is terminal
+            q_target = r + self.gamma * self.q_table.loc[s_, :].max()    # next state is not terminal
+
         self.q_table.loc[s, a] += self.lr * (q_target - q_predict)  # update
+        pd.set_option('display.max_columns', 1000)
+        pd.set_option('display.width', 1000)
+        pd.set_option('display.max_colwidth', 1000)
+        print(self.q_table)
 
     def check_state_exist(self, state):
         if state not in self.q_table.index:

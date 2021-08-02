@@ -132,7 +132,7 @@ if __name__ == "__main__":
     state_init = state_init()
     # for i in range(50):
     # print("第%d次测试：" % (i+1))
-    episodes = np.arange(20000)
+    episodes = np.arange(100)
     curr_time1 = datetime.datetime.now()
 
     # print(len(state_init))

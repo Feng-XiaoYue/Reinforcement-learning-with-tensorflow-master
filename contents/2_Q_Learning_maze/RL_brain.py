@@ -38,6 +38,7 @@ class QLearningTable:
         else:
             q_target = r  # next state is terminal
         self.q_table.loc[s, a] += self.lr * (q_target - q_predict)  # update
+        print(self.q_table, "\n")
 
     def check_state_exist(self, state):
         if state not in self.q_table.index:
