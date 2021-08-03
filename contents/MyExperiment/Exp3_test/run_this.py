@@ -63,22 +63,22 @@ def update():
             print("done:", done)
 
             if ((reward_ < init_reward) and (reward_ < min(reward_list))):
+                re = -1
                 print("reward值小于初始值或并且该循环的最小值")
 
-            if len(different) == 0 and reward_ >= reward and reward_ > (init_reward*1.3):
+            elif len(different) == 0 and reward_ >= reward and reward_ > (init_reward):
+                re = 1
                 print("reward值大于前一个循环的reward值并且采取动作后状态不改变")
 
-            if reward_ < init_reward:
-                reward_ = -1
+            else:
+                re = 0
 
-            if reward_ == init_reward:
-                reward_ = 0
 
             reward = reward_
 
             reward_list.append(reward)
 
-            RL.learn(str(state_arr_for_one), action, reward, str(state__arr), done)
+            RL.learn(str(state_arr_for_one), action, re, str(state__arr), done)
 
             state_arr_for_one = state__arr
             different_init = [y for y in (state_init_arr + state__arr) if y not in state_init_arr]
@@ -92,8 +92,8 @@ def update():
 
             if done:
                 break
-
-        reward_all_list.append(reward)
+        if (episode+1) % 100 == 0:
+            reward_all_list.append(reward)
         epoch_curr_time2 = datetime.datetime.now()
         epoch_time = epoch_curr_time2 - epoch_curr_time1
                 # if (action in actions and q_table.loc[str(state), action] >= 0) and (done and q_table.loc[str(state), action] >= 0 and reward > 0):
@@ -134,7 +134,7 @@ if __name__ == "__main__":
     state_init = state_init()
     # for i in range(50):
     # print("第%d次测试：" % (i+1))
-    episodes = np.arange(100)
+    episodes = np.arange(20000)
     curr_time1 = datetime.datetime.now()
 
     # print(len(state_init))
@@ -151,6 +151,7 @@ if __name__ == "__main__":
     # env.after(100, update)
     # env.mainloop()
     cost_all_list, reward_all_list = update()
+    print("len(reward_all_list)", len(reward_all_list))
     curr_time2 = datetime.datetime.now()
     train_time = curr_time2-curr_time1
     print("The training time：", train_time)
@@ -161,9 +162,9 @@ if __name__ == "__main__":
 
     y_1 = reward_all_list
     y_all_list = y_1
-    x = episodes
+    x = (np.arange(len(y_all_list))+1)*100
     y = y_all_list
-    y1 = [init_reward]*len(episodes)
+    y1 = [init_reward]*len(x)
     fig = plt.Figure(figsize=(7, 5))
     pl.plot(x, y, label=u'RL')
     pl.legend()
