@@ -1,5 +1,5 @@
-from cluster_env import Cluster
-from RL_brain import QLearningTable
+from .cluster_env import Cluster
+from .RL_brain import QLearningTable
 import datetime
 import numpy as np
 import matplotlib.pyplot as plt
